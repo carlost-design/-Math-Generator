@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getOpenAI } from "@/lib/openai";
 import { getSupabaseServer } from "@/lib/supabase-server";
+import { extractText } from "@/lib/ai";
 
 type SubmitBody = {
   sessionId: string;
@@ -77,7 +78,7 @@ export async function POST(req: Request) {
         const openai = getOpenAI();
         const prompt = `Problem: ${session.problem_text}\nCorrect answer: ${session.correct_answer}\nStudent answer: ${userNum}\nExplain briefly why the answer is correct or how to fix it (Primary level, kind tone, 2-4 sentences).`;
         const r = await openai.responses.create({ model: process.env.OPENAI_MODEL_FAST || "gpt-4.1-mini", input: prompt });
-        const text = (r as any).output_text ?? (r as any).content?.[0]?.text;
+        const text = extractText(r);
         if (text) feedback_text = String(text).trim().slice(0, 2000);
       } catch {
         // keep default feedback_text on AI failure

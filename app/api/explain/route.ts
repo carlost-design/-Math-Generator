@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getOpenAI } from "@/lib/openai";
 import { getSupabaseServer } from "@/lib/supabase-server";
+import { extractText } from "@/lib/ai";
 
 type Body = {
   sessionId: string;
@@ -30,7 +31,7 @@ export async function POST(req: Request) {
         : `${base}\nProvide step-by-step solution (3-6 concise steps) ending with the final numeric answer.`;
 
     const r = await openai.responses.create({ model: process.env.OPENAI_MODEL_QUALITY || "gpt-4o", input: prompt });
-    const text = (r as any).output_text ?? (r as any).content?.[0]?.text ?? "";
+    const text = extractText(r);
     const content = String(text).trim().slice(0, 4000);
     return NextResponse.json({ content });
   } catch (e) {
@@ -38,4 +39,3 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Unexpected error" }, { status: 500 });
   }
 }
-

@@ -1,6 +1,7 @@
 ﻿import { NextResponse } from "next/server";
 import { getOpenAI } from "@/lib/openai";
 import { getSupabaseServer } from "@/lib/supabase-server";
+import { extractText } from "@/lib/ai";
 
 type GenerateBody = {
   grade?: number; // 1-6
@@ -61,7 +62,7 @@ export async function POST(req: Request) {
         model: process.env.OPENAI_MODEL_FAST || "gpt-4.1-mini",
         input: promptFor(grade, difficulty, outcome)
       });
-      text = (resp as any).output_text ?? (resp as any).content?.[0]?.text ?? null;
+      text = extractText(resp) || null;
     }
     let parsed: { problem_text: string; final_answer: number | string } | null = null;
     try {
@@ -77,7 +78,7 @@ export async function POST(req: Request) {
         model: process.env.OPENAI_MODEL_FAST || "gpt-4.1-mini",
         input: promptFor(grade, difficulty, outcome) + "\nIMPORTANT: Ensure final_answer is a pure number (no words or units)."
       });
-      const t = (fallback as any).output_text ?? (fallback as any).content?.[0]?.text ?? "{}";
+      const t = extractText(fallback) || "{}";
       const tmpParsed = JSON.parse(t) as { problem_text: string; final_answer: number | string };
       parsed = tmpParsed;
       numeric = typeof tmpParsed.final_answer === "number" ? tmpParsed.final_answer : Number(String(tmpParsed.final_answer).replace(/[^\d.-]/g, ""));

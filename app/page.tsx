@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
@@ -62,7 +62,7 @@ export default function Home() {
   // Fetch history sessions from Supabase
   useEffect(() => {
     (async () => {
-      const { getSupabaseBrowser } = await import("@/lib/supabase-browser");
+      const { getSupabaseBrowser } = await import("../lib/supabase-browser");
       const sb = getSupabaseBrowser();
       if (!sb || historyIds.length === 0) { setHistory([]); return; }
       const { data } = await sb.from("math_problem_sessions").select("id, created_at, problem_text, correct_answer").in("id", historyIds);
@@ -89,7 +89,7 @@ export default function Home() {
     if (!id) return;
     (async () => {
       try {
-        const { getSupabaseBrowser } = await import("@/lib/supabase-browser");
+        const { getSupabaseBrowser } = await import("../lib/supabase-browser");
         const sb = getSupabaseBrowser();
         if (!sb) return;
         const { data } = await sb
@@ -120,7 +120,7 @@ export default function Home() {
       setSession(data.session);
       setHistoryIds((prev) => [...prev.filter((id) => id !== data.session.id), data.session.id].slice(-10));
       try { (await import("sonner")).toast.success("Generated a new problem"); } catch {}
-    } catch (e: any) {
+    } catch (e: unknown) {
       toast.error(e.message || "Failed to generate problem");
     } finally {
       setLoadingGen(false);
@@ -152,7 +152,7 @@ export default function Home() {
         setShake(true);
         setTimeout(() => setShake(false), 500);
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       toast.error(e.message || "Failed to submit");
     } finally {
       setSubmitting(false);
@@ -167,7 +167,7 @@ export default function Home() {
             <Sparkles className="size-6 text-indigo-600" />
             <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight">Curriculum-Aligned Math Generator</h1>
           </div>
-          <p className="text-muted-foreground mt-2">Generate Primary (P1–P6) math word problems aligned to the 2021 syllabus.</p>
+          <p className="text-muted-foreground mt-2">Generate Primary (P1-P6) math word problems aligned to the 2021 syllabus.</p>
         </motion.header>
         {/* Stepper removed for simplified flow */}
 
@@ -215,7 +215,7 @@ export default function Home() {
                           {o.title}
                         </option>
                       ))}
-                      <option value="custom">Custom…</option>
+                      <option value="custom">Custom...</option>
                     </Select>
                     <Input
                       value={outcome}
@@ -230,7 +230,7 @@ export default function Home() {
               <div className="mt-4 flex items-center gap-3">
                 <Button onClick={generate} disabled={loadingGen} className="gap-2">
                   {loadingGen ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
-                  {loadingGen ? "Generating…" : "Generate Problem"}
+                  {loadingGen ? "Generating..." : "Generate Problem"}
                 </Button>
                 {session && (
                   <Button onClick={generate} variant="ghost" className="gap-2">
@@ -255,7 +255,7 @@ export default function Home() {
                         setSession(data.session);
                         setHistoryIds((prev) => [...prev.filter((id) => id !== data.session.id), data.session.id].slice(-10));
                         try { (await import("sonner")).toast.success("Improved variant ready"); } catch {}
-                      } catch (e: any) {
+                      } catch (e: unknown) {
                         toast.error(e.message || "Failed to improve");
                       } finally {
                         setLoadingGen(false);
@@ -310,7 +310,7 @@ export default function Home() {
                 {history.slice(-8).reverse().map((h) => (
                   <li key={h.id} className="flex items-center justify-between gap-3">
                     <span className="text-sm text-foreground/80 line-clamp-2">
-                      {h.problem_text.length > 100 ? h.problem_text.slice(0, 100) + "…" : h.problem_text}
+                      {h.problem_text.length > 100 ? h.problem_text.slice(0, 100) + "\u2026" : h.problem_text}
                     </span>
                     <Button size="sm" variant="ghost" onClick={() => setSession(h)}>Load</Button>
                   </li>
@@ -336,7 +336,7 @@ export default function Home() {
                   <Input value={answer} onChange={(e) => setAnswer(e.target.value)} placeholder="Your numeric answer" />
                   <Button onClick={submit} disabled={submitting} variant="secondary" className="min-w-40">
                     {submitting ? (
-                      <span className="inline-flex items-center gap-2"><Loader2 className="size-4 animate-spin" /> Submitting…</span>
+                      <span className="inline-flex items-center gap-2"><Loader2 className="size-4 animate-spin" /> Submitting</span>
                     ) : (
                       "Submit Answer"
                     )}
@@ -367,7 +367,7 @@ export default function Home() {
                         if (!res.ok) throw new Error(data?.error || "Failed to get hint");
                         setHint(data.content);
                         try { (await import("sonner")).toast.success("Hint ready"); } catch {}
-                      } catch (e: any) {
+                      } catch (e: unknown) {
                         toast.error(e.message || "Failed to get hint");
                       } finally {
                         setLoadingHint(false);
@@ -390,7 +390,7 @@ export default function Home() {
                         if (!res.ok) throw new Error(data?.error || "Failed to get solution");
                         setSolution(data.content);
                         try { (await import("sonner")).toast.success("Solution ready"); } catch {}
-                      } catch (e: any) {
+                      } catch (e: unknown) {
                         toast.error(e.message || "Failed to get solution");
                       } finally {
                         setLoadingSolution(false);
@@ -445,3 +445,4 @@ export default function Home() {
     </div>
   );
 }
+

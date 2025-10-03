@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getOpenAI } from "@/lib/openai";
 import { getSupabaseServer } from "@/lib/supabase-server";
+import { extractText } from "@/lib/ai";
 
 type Body = {
   grade: number;
@@ -22,7 +23,7 @@ Make a fresh variant with clearer wording or a different everyday context and sm
 Return ONLY minified JSON: {"problem_text": string, "final_answer": number}.`;
 
     const r = await openai.responses.create({ model: process.env.OPENAI_MODEL_FAST || "gpt-4.1-mini", input: prompt });
-    const text = (r as any).output_text ?? (r as any).content?.[0]?.text ?? "{}";
+    const text = extractText(r) || "{}";
     const parsed = JSON.parse(text) as { problem_text: string; final_answer: number | string };
     const numeric = typeof parsed.final_answer === "number" ? parsed.final_answer : Number(String(parsed.final_answer).replace(/[^\d.-]/g, ""));
     if (!Number.isFinite(numeric)) return NextResponse.json({ error: "AI did not return a numeric final_answer" }, { status: 400 });
@@ -40,4 +41,3 @@ Return ONLY minified JSON: {"problem_text": string, "final_answer": number}.`;
     return NextResponse.json({ error: "Unexpected error" }, { status: 500 });
   }
 }
-
