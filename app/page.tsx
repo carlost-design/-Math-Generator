@@ -17,6 +17,8 @@ import { ReadAloudButton } from "@/components/read-aloud-button";
 import { RewardBar } from "@/components/reward-bar";
 import confetti from "canvas-confetti";
 
+const getErrorMessage = (e: unknown) => (e instanceof Error ? e.message : String(e));
+
 type Session = { id: string; problem_text: string; correct_answer: number };
 
 export default function Home() {
@@ -120,7 +122,7 @@ export default function Home() {
       setHistoryIds((prev) => [...prev.filter((id) => id !== data.session.id), data.session.id].slice(-10));
       try { (await import("sonner")).toast.success("Generated a new problem"); } catch {}
     } catch (e: unknown) {
-      toast.error(e.message || "Failed to generate problem");
+      toast.error(getErrorMessage(e) || "Failed to generate problem");
     } finally {
       setLoadingGen(false);
     }
@@ -152,7 +154,7 @@ export default function Home() {
         setTimeout(() => setShake(false), 500);
       }
     } catch (e: unknown) {
-      toast.error(e.message || "Failed to submit");
+      toast.error(getErrorMessage(e) || "Failed to submit");
     } finally {
       setSubmitting(false);
     }
@@ -255,7 +257,7 @@ export default function Home() {
                         setHistoryIds((prev) => [...prev.filter((id) => id !== data.session.id), data.session.id].slice(-10));
                         try { (await import("sonner")).toast.success("Improved variant ready"); } catch {}
                       } catch (e: unknown) {
-                        toast.error(e.message || "Failed to improve");
+                        toast.error(getErrorMessage(e) || "Failed to improve");
                       } finally {
                         setLoadingGen(false);
                       }
@@ -367,7 +369,7 @@ export default function Home() {
                         setHint(data.content);
                         try { (await import("sonner")).toast.success("Hint ready"); } catch {}
                       } catch (e: unknown) {
-                        toast.error(e.message || "Failed to get hint");
+                        toast.error(getErrorMessage(e) || "Failed to get hint");
                       } finally {
                         setLoadingHint(false);
                       }
@@ -390,7 +392,7 @@ export default function Home() {
                         setSolution(data.content);
                         try { (await import("sonner")).toast.success("Solution ready"); } catch {}
                       } catch (e: unknown) {
-                        toast.error(e.message || "Failed to get solution");
+                        toast.error(getErrorMessage(e) || "Failed to get solution");
                       } finally {
                         setLoadingSolution(false);
                       }
