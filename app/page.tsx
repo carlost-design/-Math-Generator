@@ -66,7 +66,7 @@ export default function Home() {
       const sb = getSupabaseBrowser();
       if (!sb || historyIds.length === 0) { setHistory([]); return; }
       const { data } = await sb.from("math_problem_sessions").select("id, created_at, problem_text, correct_answer").in("id", historyIds);
-      setHistory((data as any as Session[]) || []);
+      setHistory((data as unknown as Session[]) || []);
     })();
   }, [historyIds]);
 
@@ -97,10 +97,9 @@ export default function Home() {
           .select("id, created_at, problem_text, correct_answer")
           .eq("id", id)
           .single();
-        if (data) setSession(data as any as Session);
+        if (data) setSession(data as unknown as Session);
       } catch {}
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
 
   async function generate() {
@@ -445,4 +444,5 @@ export default function Home() {
     </div>
   );
 }
+
 
