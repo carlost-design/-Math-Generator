@@ -17,11 +17,13 @@ import { ReadAloudButton } from "@/components/read-aloud-button";
 import { RewardBar } from "@/components/reward-bar";
 import confetti from "canvas-confetti";
 
-const getErrorMessage = (e: unknown) => (e instanceof Error ? e.message : String(e));
-
 export const dynamic = "force-dynamic";
 
 type Session = { id: string; problem_text: string; correct_answer: number };
+
+type SubmissionResult = { is_correct: boolean; feedback_text: string };
+
+const getErrorMessage = (e: unknown): string => (e instanceof Error ? e.message : String(e));
 
 function HomeContent() {
   const [grade, setGrade] = useState(5);
@@ -33,13 +35,14 @@ function HomeContent() {
   const [session, setSession] = useState<Session | null>(null);
   const [answer, setAnswer] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [result, setResult] = useState<{ is_correct: boolean; feedback_text: string } | null>(null);
+  const [result, setResult] = useState<SubmissionResult | null>(null);
 
   const [hint, setHint] = useState<string | null>(null);
   const [solution, setSolution] = useState<string | null>(null);
   const [loadingHint, setLoadingHint] = useState(false);
   const [loadingSolution, setLoadingSolution] = useState(false);
   const search = useSearchParams();
+
   const [historyIds, setHistoryIds] = useState<string[]>(() => {
     if (typeof window === "undefined") return [];
     try {
@@ -52,25 +55,30 @@ function HomeContent() {
   const [history, setHistory] = useState<Session[]>([]);
   const [streak, setStreak] = useState<number>(() => {
     if (typeof window === "undefined") return 0;
-    try { return Number(localStorage.getItem("ottodoto.streak")) || 0; } catch { return 0; }
+    try {
+      return Number(localStorage.getItem("ottodoto.streak")) || 0;
+    } catch {
+      return 0;
+    }
   });
   const [stars, setStars] = useState<number>(0);
-  const [shake, setShake] = useState<boolean>(false);
+  const [shake, setShake] = useState(false);
 
-  // Persist historyIds
   useEffect(() => {
     if (typeof window === "undefined") return;
     try { localStorage.setItem("ottodoto.sessions", JSON.stringify(historyIds.slice(-10))); } catch {}
   }, [historyIds]);
 
-  // Fetch history sessions from Supabase
   useEffect(() => {
     (async () => {
-      const { getSupabaseBrowser } = await import("../lib/supabase-browser");
+      const { getSupabaseBrowser } = await import("@/lib/supabase-browser");
       const sb = getSupabaseBrowser();
       if (!sb || historyIds.length === 0) { setHistory([]); return; }
-      const { data } = await sb.from("math_problem_sessions").select("id, created_at, problem_text, correct_answer").in("id", historyIds);
-      setHistory((data as unknown as Session[]) || []);
+      const { data } = await sb
+        .from("math_problem_sessions")
+        .select("id, created_at, problem_text, correct_answer")
+        .in("id", historyIds);
+      setHistory((data as Session[]) || []);
     })();
   }, [historyIds]);
 
@@ -87,13 +95,12 @@ function HomeContent() {
     return () => window.removeEventListener("ottodoto:new-session", handler);
   }, []);
 
-  // Load a session from query param ?session=...
   useEffect(() => {
     const id = search.get("session");
     if (!id) return;
     (async () => {
       try {
-        const { getSupabaseBrowser } = await import("../lib/supabase-browser");
+        const { getSupabaseBrowser } = await import("@/lib/supabase-browser");
         const sb = getSupabaseBrowser();
         if (!sb) return;
         const { data } = await sb
@@ -101,7 +108,7 @@ function HomeContent() {
           .select("id, created_at, problem_text, correct_answer")
           .eq("id", id)
           .single();
-        if (data) setSession(data as unknown as Session);
+        if (data) setSession(data as Session);
       } catch {}
     })();
   }, [search]);
@@ -123,7 +130,7 @@ function HomeContent() {
       setSession(data.session);
       setHistoryIds((prev) => [...prev.filter((id) => id !== data.session.id), data.session.id].slice(-10));
       try { (await import("sonner")).toast.success("Generated a new problem"); } catch {}
-    } catch (e: unknown) {
+    } catch (e) {
       toast.error(getErrorMessage(e) || "Failed to generate problem");
     } finally {
       setLoadingGen(false);
@@ -148,14 +155,14 @@ function HomeContent() {
       const nextStreak = isCorrect ? streak + 1 : 0;
       setStreak(nextStreak);
       try { localStorage.setItem("ottodoto.streak", String(nextStreak)); } catch {}
-      try { (await import("sonner")).toast.success(data.submission.is_correct ? "Correct answer saved" : "Submission saved"); } catch {}
+      try { (await import("sonner")).toast.success(isCorrect ? "Correct answer saved" : "Submission saved"); } catch {}
       if (isCorrect) {
         confetti({ particleCount: 80, spread: 60, origin: { y: 0.7 } });
       } else {
         setShake(true);
         setTimeout(() => setShake(false), 500);
       }
-    } catch (e: unknown) {
+    } catch (e) {
       toast.error(getErrorMessage(e) || "Failed to submit");
     } finally {
       setSubmitting(false);
@@ -163,7 +170,6 @@ function HomeContent() {
   }
 
   return (
-    <Suspense fallback={<div className="p-6">Loading…</div>}>
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary text-foreground p-6 sm:p-10">
       <div className="max-w-4xl mx-auto">
         <motion.header initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="mb-6">
@@ -171,9 +177,8 @@ function HomeContent() {
             <Sparkles className="size-6 text-indigo-600" />
             <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight">Curriculum-Aligned Math Generator</h1>
           </div>
-          <p className="text-muted-foreground mt-2">Generate Primary (P1-P6) math word problems aligned to the 2021 syllabus.</p>
+          <p className="text-muted-foreground mt-2">Generate Primary (P1–P6) math word problems aligned to the 2021 syllabus and save to Supabase.</p>
         </motion.header>
-        {/* Stepper removed for simplified flow */}
 
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, delay: 0.05 }}>
           <Card className="mb-6">
@@ -219,7 +224,7 @@ function HomeContent() {
                           {o.title}
                         </option>
                       ))}
-                      <option value="custom">Custom...</option>
+                      <option value="custom">Custom…</option>
                     </Select>
                     <Input
                       value={outcome}
@@ -234,7 +239,7 @@ function HomeContent() {
               <div className="mt-4 flex items-center gap-3">
                 <Button onClick={generate} disabled={loadingGen} className="gap-2">
                   {loadingGen ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
-                  {loadingGen ? "Generating..." : "Generate Problem"}
+                  {loadingGen ? "Generating…" : "Generate Problem"}
                 </Button>
                 {session && (
                   <Button onClick={generate} variant="ghost" className="gap-2">
@@ -257,9 +262,8 @@ function HomeContent() {
                         const data = await res.json();
                         if (!res.ok) throw new Error(data?.error || "Failed to improve");
                         setSession(data.session);
-                        setHistoryIds((prev) => [...prev.filter((id) => id !== data.session.id), data.session.id].slice(-10));
                         try { (await import("sonner")).toast.success("Improved variant ready"); } catch {}
-                      } catch (e: unknown) {
+                      } catch (e) {
                         toast.error(getErrorMessage(e) || "Failed to improve");
                       } finally {
                         setLoadingGen(false);
@@ -285,7 +289,7 @@ function HomeContent() {
                 <Skeleton className="h-4 w-2/3" />
                 <Skeleton className="h-4 w-1/2" />
               </div>
-              <div className="mt-4 flex items-center gap-3">
+              <div className="mt-4 flex items-centered gap-3">
                 <Skeleton className="h-10 w-full" />
                 <Skeleton className="h-10 w-40" />
               </div>
@@ -314,7 +318,7 @@ function HomeContent() {
                 {history.slice(-8).reverse().map((h) => (
                   <li key={h.id} className="flex items-center justify-between gap-3">
                     <span className="text-sm text-foreground/80 line-clamp-2">
-                      {h.problem_text.length > 100 ? h.problem_text.slice(0, 100) + "\u2026" : h.problem_text}
+                      {h.problem_text.length > 100 ? `${h.problem_text.slice(0, 100)}…` : h.problem_text}
                     </span>
                     <Button size="sm" variant="ghost" onClick={() => setSession(h)}>Load</Button>
                   </li>
@@ -340,12 +344,13 @@ function HomeContent() {
                   <Input value={answer} onChange={(e) => setAnswer(e.target.value)} placeholder="Your numeric answer" />
                   <Button onClick={submit} disabled={submitting} variant="secondary" className="min-w-40">
                     {submitting ? (
-                      <span className="inline-flex items-center gap-2"><Loader2 className="size-4 animate-spin" /> Submitting</span>
+                      <span className="inline-flex items-center gap-2"><Loader2 className="size-4 animate-spin" /> Submitting…</span>
                     ) : (
                       "Submit Answer"
                     )}
                   </Button>
                 </div>
+
                 <div className="mt-4">
                   <NumericKeypad
                     disabled={submitting}
@@ -371,7 +376,7 @@ function HomeContent() {
                         if (!res.ok) throw new Error(data?.error || "Failed to get hint");
                         setHint(data.content);
                         try { (await import("sonner")).toast.success("Hint ready"); } catch {}
-                      } catch (e: unknown) {
+                      } catch (e) {
                         toast.error(getErrorMessage(e) || "Failed to get hint");
                       } finally {
                         setLoadingHint(false);
@@ -394,7 +399,7 @@ function HomeContent() {
                         if (!res.ok) throw new Error(data?.error || "Failed to get solution");
                         setSolution(data.content);
                         try { (await import("sonner")).toast.success("Solution ready"); } catch {}
-                      } catch (e: unknown) {
+                      } catch (e) {
                         toast.error(getErrorMessage(e) || "Failed to get solution");
                       } finally {
                         setLoadingSolution(false);
@@ -478,4 +483,3 @@ function HomeLoading() {
     </div>
   );
 }
-
