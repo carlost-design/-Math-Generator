@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import React, { useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,9 +19,11 @@ import confetti from "canvas-confetti";
 
 const getErrorMessage = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
+export const dynamic = "force-dynamic";
+
 type Session = { id: string; problem_text: string; correct_answer: number };
 
-export default function Home() {
+function HomeContent() {
   const [grade, setGrade] = useState(5);
   const [difficulty, setDifficulty] = useState("Medium");
   const [outcome, setOutcome] = useState("");
@@ -161,6 +163,7 @@ export default function Home() {
   }
 
   return (
+    <Suspense fallback={<div className="p-6">Loading…</div>}>
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary text-foreground p-6 sm:p-10">
       <div className="max-w-4xl mx-auto">
         <motion.header initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="mb-6">
@@ -447,4 +450,32 @@ export default function Home() {
   );
 }
 
+export default function Home() {
+  return (
+    <Suspense fallback={<HomeLoading />}>
+      <HomeContent />
+    </Suspense>
+  );
+}
+
+function HomeLoading() {
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-background to-secondary text-foreground p-6 sm:p-10">
+      <div className="max-w-4xl mx-auto space-y-4">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-12 w-64" />
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-32" />
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-5/6" />
+            <Skeleton className="h-4 w-2/3" />
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
 
