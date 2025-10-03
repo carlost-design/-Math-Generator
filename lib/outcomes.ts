@@ -1,0 +1,51 @@
+export type Outcome = { id: string; title: string };
+export const outcomesByGrade: Record<number, Outcome[]> = {
+  1: [
+    { id: "p1-numbers-100", title: "Understand and use addition and subtraction within 100" },
+    { id: "p1-compare-100", title: "Compare and order numbers up to 100" },
+    { id: "p1-time", title: "Tell time to the hour and half-hour" },
+    { id: "p1-length", title: "Compare and measure lengths with non-standard units" },
+    { id: "p1-money", title: "Count and compare values of coins and notes" },
+    { id: "p1-shapes", title: "Identify basic 2D shapes and their properties" },
+  ],
+  2: [
+    { id: "p2-add-sub-1000", title: "Addition and subtraction of numbers up to 1000" },
+    { id: "p2-mult-div-basic", title: "Multiplication and division by 2, 5, and 10" },
+    { id: "p2-length-mass", title: "Measure and compare length and mass (m, cm; kg, g)" },
+    { id: "p2-time-intervals", title: "Find time intervals in hours and minutes" },
+    { id: "p2-money-change", title: "Find total cost and change in simple money problems" },
+    { id: "p2-graphs", title: "Read and interpret simple picture graphs" },
+  ],
+  3: [
+    { id: "p3-mult-div-10000", title: "Multiplication and division within 10,000" },
+    { id: "p3-fractions-intro", title: "Fractions: understanding unit fractions and simple comparisons" },
+    { id: "p3-area-perimeter", title: "Perimeter and area of rectangles" },
+    { id: "p3-time-tables", title: "Use and interpret timelines and timetables" },
+    { id: "p3-money-2step", title: "2-step money word problems" },
+    { id: "p3-graphs-bar", title: "Bar graphs: read and compare data" },
+  ],
+  4: [
+    { id: "p4-decimals-add-sub", title: "Decimals (tenths/hundredths): addition and subtraction" },
+    { id: "p4-area-perimeter", title: "Area and perimeter of rectangles and composite figures" },
+    { id: "p4-fractions-compare", title: "Compare and order fractions with unlike denominators" },
+    { id: "p4-angles", title: "Right, acute, obtuse angles; angle sums of a triangle" },
+    { id: "p4-decimals-measure", title: "Measure with decimals (length, mass, volume)" },
+    { id: "p4-graphs-line", title: "Line graphs: interpret and compare changes" },
+  ],
+  5: [
+    { id: "p5-fractions-ops", title: "Fractions: addition and subtraction of unlike denominators" },
+    { id: "p5-ratio", title: "Ratio concepts and simple problem solving" },
+    { id: "p5-percentage", title: "Percentage of a quantity; simple percentage increase/decrease" },
+    { id: "p5-volume", title: "Volume of cubes and cuboids" },
+    { id: "p5-average", title: "Average (mean) and simple word problems" },
+    { id: "p5-decimals-mult-div", title: "Multiply and divide decimals by whole numbers" },
+  ],
+  6: [
+    { id: "p6-percentage", title: "Percentage: find percentage of a quantity and percentage change" },
+    { id: "p6-speed", title: "Speed: distance–time word problems" },
+    { id: "p6-fractions-mixed-ops", title: "Fractions: mixed operations and simplifying answers" },
+    { id: "p6-ratio-rate", title: "Ratio and rate: multi-step word problems" },
+    { id: "p6-circles", title: "Circles: circumference and area (using π≈3.14 or 22/7)" },
+    { id: "p6-geometry-nets", title: "Nets of solids and surface area of cubes/cuboids" },
+  ],
+};
